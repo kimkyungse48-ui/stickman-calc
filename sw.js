@@ -1,5 +1,5 @@
 /* 스틱맨 계산기 서비스워커 — 한 번 열면 오프라인에서도 동작 */
-const CACHE = 'stickman-calc-v1';
+const CACHE = 'stickman-calc-v2';
 const SHELL = [
   './',
   './index.html',
@@ -9,6 +9,7 @@ const SHELL = [
   './manifest.webmanifest',
   './icon-192.png',
   './icon-512.png',
+  './icon-maskable-512.png',
   './apple-touch-icon.png',
 ];
 

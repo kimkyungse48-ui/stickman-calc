@@ -3,6 +3,8 @@
 숫자판을 스틱맨 둘이 번쩍 받쳐 들고 있는 귀여운 계산기입니다.
 안드로이드 폰 홈 화면에 추가하면 앱처럼 전체 화면으로 열립니다(PWA).
 
+**지금 주소: <https://kimkyungse48-ui.github.io/stickman-calc/>** (GitHub Pages)
+
 | 기본 | 무거운 숫자에 깔려서 엉엉 |
 | --- | --- |
 | ![기본](preview-normal.png) | ![깔림](preview-heavy.png) |
@@ -23,13 +25,24 @@
 
 ## 폰에 앱처럼 설치하기
 
-1. 안드로이드 크롬에서 이 앱의 **https 주소**를 엽니다. (PWA 설치는 https 또는 localhost에서만 동작합니다.)
-2. 오른쪽 위 ⋮ → **홈 화면에 추가** → 설치.
+1. 안드로이드 크롬에서 <https://kimkyungse48-ui.github.io/stickman-calc/> 를 엽니다.
+2. 오른쪽 위 ⋮ → **홈 화면에 추가** (또는 화면에 뜨는 **앱 설치** 버튼) → 설치.
 3. 홈 화면의 스틱맨 아이콘을 누르면 주소창 없이 전체 화면으로 열립니다.
 
-> 지금은 코드만 완성된 상태이고 아직 인터넷에 올리지 않았습니다.
-> Netlify 무료 크레딧이 12월 14일까지 소진되어 있어, 그 뒤 Netlify에 올리거나
-> GitHub Pages 같은 무료 정적 호스팅에 올리면 됩니다(둘 다 새 공개 주소가 생기는 일이라 먼저 확인 필요).
+## 배포 (GitHub Pages)
+
+이 저장소의 GitHub Pages는 **`gh-pages` 브랜치 루트**를 배포 대상으로 쓰고 있습니다.
+(`main` 브랜치를 직접 소스로 지정하는 설정은 GitHub 앱 권한상 바꿀 수 없어 gh-pages를 씁니다.)
+
+코드를 고친 뒤 배포하려면:
+
+```bash
+scripts/deploy_pages.sh      # main 커밋 → gh-pages로 밀어 넣고 사이트를 다시 빌드시킴
+```
+
+배포 후 1~2분 안에 <https://kimkyungse48-ui.github.io/stickman-calc/> 에 반영됩니다.
+서비스워커가 캐시를 물고 있어서, 폰에서 옛 화면이 보이면 새로고침을 두 번 하거나
+`sw.js`의 `CACHE` 이름을 `stickman-calc-v3`처럼 올려 주면 됩니다.
 
 PC에서 먼저 볼 때는 이 폴더에서:
 
@@ -53,6 +66,8 @@ tests/cases.js          계산 엔진 테스트 케이스 28개
 tests/calc.test.mjs     Node로 테스트 실행
 tests/test.html         브라우저에서 눈으로 보는 테스트 결과
 tests/ui_test.py        Playwright 화면·동작 테스트 + 스크린샷
+tests/deploy_check.py   배포된 https 주소 검증 (계산·모션·매니페스트·SW·아이콘)
+scripts/deploy_pages.sh main → gh-pages 배포
 ```
 
 ## 테스트
@@ -60,6 +75,7 @@ tests/ui_test.py        Playwright 화면·동작 테스트 + 스크린샷
 ```bash
 node tests/calc.test.mjs      # 계산 엔진 28개 → 28/28 통과
 python3 tests/ui_test.py      # 화면·버튼·모드 전환·오프라인·콘솔 오류 확인
+python3 tests/deploy_check.py # 실제 배포 주소가 정상인지 확인
 ```
 
 `tests/test.html`을 브라우저로 열면 같은 테스트를 화면에서 볼 수 있습니다.

@@ -209,40 +209,32 @@ body::before {
 }
 
 /* ── 음성 읽기 토글 ─────────────────────────── */
-.say-btn svg {
-  width: 16px;
-  height: 16px;
+.say-btn {
+  position: relative;
 }
 
-.say-body {
-  fill: currentColor;
-}
-
-.say-wave {
-  fill: none;
-  stroke: #fffdf6;
-  stroke-width: 1.6;
-  stroke-linecap: round;
-}
-
-.say-slash {
-  display: none;
-  fill: none;
-  stroke: #d8452a;
-  stroke-width: 2;
-  stroke-linecap: round;
-}
-
-.say-btn[aria-pressed="false"] {
-  color: #a8997f;
-}
-
-.say-btn[aria-pressed="false"] .say-wave {
-  display: none;
-}
-
-.say-btn[aria-pressed="false"] .say-slash {
+.say-emoji {
   display: block;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.say-btn[aria-pressed="false"] .say-emoji {
+  filter: grayscale(1);
+  opacity: 0.45;
+}
+
+.say-btn[aria-pressed="false"]::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  top: 50%;
+  height: 2px;
+  margin-top: -1px;
+  border-radius: 2px;
+  background: #d8452a;
+  transform: rotate(-45deg);
 }
 
 /* 좁은 폰에서도 상단 버튼 세 개가 한 줄에 들어가게 */

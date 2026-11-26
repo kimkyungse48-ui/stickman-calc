@@ -47,7 +47,7 @@ scripts/deploy_pages.sh      # main 커밋 → gh-pages로 밀어 넣고 사이�
 
 배포 후 1~2분 안에 <https://kimkyungse48-ui.github.io/stickman-calc/> 에 반영됩니다.
 서비스워커가 캐시를 물고 있어서, 폰에서 옛 화면이 보이면 새로고침을 두 번 하거나
-`sw.js`의 `CACHE` 이름을 `stickman-calc-v4`처럼 올려 주면 됩니다.
+`sw.js`의 `CACHE` 이름을 `stickman-calc-v5`처럼 올려 주면 됩니다.
 
 PC에서 먼저 볼 때는 이 폴더에서:
 

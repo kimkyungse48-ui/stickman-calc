@@ -130,7 +130,7 @@ def main():
         check("서비스워커 등록", sw and sw["active"], sw)
         check("SW scope 가 서브패스", sw and sw["scope"].endswith("/stickman-calc/"), sw and sw["scope"])
         cached = page.evaluate("async () => (await caches.keys())")
-        check("캐시 생성 (v3)", "stickman-calc-v3" in cached, cached)
+        check("캐시 생성 (v4)", "stickman-calc-v4" in cached, cached)
         context.set_offline(True)
         offline_ok = False
         try:

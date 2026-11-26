@@ -1,0 +1,21 @@
+{
+  "name": "스틱맨 계산기",
+  "short_name": "스틱맨계산기",
+  "description": "스틱맨 둘이 숫자판을 번쩍 받쳐 드는 귀여운 계산기. 무거운 숫자가 나오면 낑낑대고, 너무 크면 깔려서 엉엉 울어요.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#f4ecdc",
+  "theme_color": "#f4ecdc",
+  "lang": "ko",
+  "dir": "ltr",
+  "categories": ["utilities", "productivity"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

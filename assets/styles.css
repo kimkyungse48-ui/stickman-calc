@@ -1,0 +1,945 @@
+/* 스틱맨 계산기 — 화면 스타일 */
+
+:root {
+  --paper: #f7f0e0;
+  --paper-hi: #fffdf6;
+  --ink: #2f2a22;
+  --ink-2: #6f6657;
+  --ink-3: #a2977f;
+  --key-edge: #dbd0b8;
+  --accent: #f5522a;
+  --accent-hi: #ff7a45;
+  --accent-edge: #b83713;
+  --pink: #ff7ba6;
+  --pink-deep: #e85d8d;
+  --pink-soft: #ffd7e3;
+  --ink-line: #3b342a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Noto Sans CJK KR", "Malgun Gothic",
+    "Segoe UI", Roboto, sans-serif;
+  color: var(--ink);
+  background: #efe6f4;
+  background:
+    radial-gradient(90% 70% at 12% 4%, #e8dcf8 0%, rgba(232, 220, 248, 0) 58%),
+    radial-gradient(85% 65% at 92% 10%, #ffe3d2 0%, rgba(255, 227, 210, 0) 55%),
+    radial-gradient(120% 80% at 50% 108%, #f6ecdc 0%, #f3e7dd 48%, #eadff0 100%);
+  min-height: 100dvh;
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior: none;
+}
+
+body::before {
+  /* 책상 위 은은한 빛 */
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(60% 40% at 50% 30%, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0) 70%);
+  pointer-events: none;
+}
+
+.app {
+  position: relative;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: max(10px, env(safe-area-inset-top)) 12px max(10px, env(safe-area-inset-bottom));
+}
+
+/* ── 계산기 본체 ───────────────────────────── */
+.calc {
+  position: relative;
+  width: min(430px, 100%);
+  height: min(880px, calc(100dvh - 44px));
+  display: flex;
+  flex-direction: column;
+  padding: 12px 14px 16px;
+  background: linear-gradient(168deg, #fcf7ea 0%, #f6efdf 45%, #f4ecda 100%);
+  border: 1px solid rgba(70, 58, 38, 0.14);
+  border-radius: 34px 30px 36px 30px;
+  box-shadow:
+    0 30px 60px -24px rgba(70, 50, 96, 0.45),
+    0 10px 24px -14px rgba(70, 50, 96, 0.35),
+    inset 0 2px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -10px 22px rgba(150, 126, 86, 0.08);
+  transition: background 0.4s ease;
+}
+
+.calc[data-mode="jeolmi"] {
+  background: linear-gradient(168deg, #fff6f8 0%, #fbeef1 45%, #f8e9ec 100%);
+}
+
+/* ── 상단 바 ───────────────────────────────── */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 4px 9px;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.title-mark {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 1.6px solid var(--ink-line);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08);
+}
+
+.calc[data-mode="jeolmi"] .title-mark {
+  background: var(--pink);
+}
+
+.tools {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.mode-toggle {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  padding: 3px;
+  font: inherit;
+  border: 1px solid rgba(70, 58, 38, 0.14);
+  border-radius: 999px;
+  background: #ece2cd;
+  box-shadow: inset 0 1px 2px rgba(90, 70, 40, 0.14);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.seg {
+  padding: 3px 7px 4px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  color: #938974;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.calc[data-mode="stickman"] .seg--stickman {
+  background: var(--ink);
+  color: #fff6e2;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.calc[data-mode="jeolmi"] .seg--jeolmi {
+  background: var(--pink);
+  color: #fff;
+  box-shadow: 0 1px 4px rgba(232, 93, 141, 0.45);
+}
+
+.sound-btn {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  color: var(--ink);
+  border: 1.5px solid #cfc2a8;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #fffdf6, #f8f1de);
+  box-shadow: 0 2px 0 #d9cdb4, inset 0 1px 0 #fff;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.sound-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.spk-body {
+  fill: currentColor;
+}
+
+.spk-wave {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+}
+
+.spk-slash {
+  display: none;
+  fill: none;
+  stroke: #d8452a;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.sound-btn[aria-pressed="false"] .spk-wave {
+  display: none;
+}
+
+.sound-btn[aria-pressed="false"] .spk-slash {
+  display: block;
+}
+
+/* ── 숫자판 + 캐릭터 ───────────────────────── */
+.stage {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.display {
+  position: relative;
+  min-height: clamp(94px, 14.5vh, 124px);
+  padding: 9px 16px 19px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: linear-gradient(180deg, #fffdf4 0%, #fdf9ec 100%);
+  border: 2px solid var(--ink-line);
+  border-radius: 22px;
+  box-shadow:
+    0 7px 0 rgba(59, 52, 42, 0.1),
+    0 14px 22px -14px rgba(60, 44, 18, 0.5),
+    inset 0 3px 8px rgba(255, 255, 255, 0.9),
+    inset 0 -6px 10px rgba(190, 172, 130, 0.16);
+  transition: transform 0.28s cubic-bezier(0.3, 1.5, 0.5, 1);
+  z-index: 2;
+}
+
+.display-inner {
+  position: absolute;
+  inset: 5px;
+  border: 1px solid rgba(59, 52, 42, 0.32);
+  border-radius: 16px;
+  pointer-events: none;
+}
+
+.expr {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  min-height: 16px;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: 0.01em;
+  text-align: right;
+  color: #a1967f;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.value-wrap {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  overflow: hidden;
+}
+
+.value {
+  display: block;
+  max-width: 100%;
+  font-size: clamp(38px, 12.6vw, 50px);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.025em;
+  color: #221f18;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  transition: font-size 0.12s ease;
+}
+
+.display.is-error .value {
+  font-size: clamp(26px, 7.4vw, 34px);
+  letter-spacing: 0.04em;
+}
+
+.display.len-9 .value {
+  font-size: clamp(29px, 9.6vw, 42px);
+}
+
+.display.len-12 .value {
+  font-size: clamp(23px, 7.6vw, 33px);
+}
+
+.display.len-16 .value {
+  font-size: clamp(18px, 6vw, 26px);
+}
+
+/* ── 말풍선 ───────────────────────────────── */
+.bubble {
+  position: absolute;
+  left: 50%;
+  bottom: 46px;
+  z-index: 4;
+  padding: 3px 9px 4px;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #6b5f4c;
+  white-space: nowrap;
+  background: #fffdf6;
+  border: 1.6px solid var(--ink-line);
+  border-radius: 11px;
+  opacity: 0;
+  transform: translate(-50%, 6px) scale(0.85);
+  transition: opacity 0.2s ease, transform 0.24s cubic-bezier(0.3, 1.6, 0.5, 1);
+  pointer-events: none;
+}
+
+.bubble::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -6px;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  background: inherit;
+  border-left: 1.6px solid var(--ink-line);
+  border-top: 1.6px solid var(--ink-line);
+  transform: rotate(45deg);
+  border-radius: 2px 0 0 0;
+}
+
+.calc.is-heavy .bubble,
+.calc.is-crushed .bubble,
+.calc.is-cheer .bubble {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+}
+
+.calc.is-crushed .bubble {
+  left: 50%;
+  bottom: 26px;
+  color: #a2395c;
+}
+
+.calc.is-cheer .bubble {
+  color: #c2410c;
+}
+
+/* ── 캐릭터 SVG ───────────────────────────── */
+.crew-wrap {
+  position: relative;
+  z-index: 3;
+  margin-top: -20px;
+  pointer-events: none;
+}
+
+.crew {
+  display: block;
+  width: 100%;
+  height: clamp(118px, 19vh, 156px);
+  overflow: visible;
+  pointer-events: none;
+  transition: transform 0.3s cubic-bezier(0.3, 1.4, 0.5, 1);
+  transform-origin: 50% 0;
+}
+
+.crew .figure {
+  transform-origin: 50% 100%;
+  animation: bob 3.6s ease-in-out infinite;
+}
+
+.crew .figure--girl {
+  animation-delay: -1.2s;
+}
+
+.crew .figure--jeolmi-b {
+  animation-delay: -0.7s;
+}
+
+.crew .line {
+  fill: none;
+  stroke: var(--ink-line);
+  stroke-width: 3.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.crew .arm {
+  stroke-width: 4.2;
+}
+
+.crew .hand {
+  fill: #fffdf6;
+  stroke: var(--ink-line);
+  stroke-width: 2.6;
+}
+
+.crew .head {
+  fill: #fffdf7;
+  stroke: var(--ink-line);
+  stroke-width: 3;
+}
+
+.crew .hair {
+  fill: var(--ink-line);
+}
+
+.crew .shirt {
+  fill: var(--accent);
+  stroke: var(--ink-line);
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+.crew .jeolmi {
+  fill: var(--pink);
+  stroke: #c24a72;
+  stroke-width: 2.6;
+  stroke-linejoin: round;
+}
+
+.crew .cheek {
+  fill: #ff9f7a;
+  opacity: 0.55;
+}
+
+.crew .eye {
+  fill: var(--ink-line);
+}
+
+.crew .mouth {
+  fill: none;
+  stroke: var(--ink-line);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.crew .mouth-open {
+  fill: #7a3c46;
+  stroke: var(--ink-line);
+  stroke-width: 2;
+}
+
+.crew .jeolmi-leg {
+  stroke: var(--pink);
+  stroke-width: 13;
+  stroke-linecap: round;
+}
+
+.crew .tear {
+  fill: #7cc7f2;
+  stroke: #4f9fc9;
+  stroke-width: 1.1;
+}
+
+.crew .sweat {
+  fill: #8fd3f4;
+  stroke: #4f9fc9;
+  stroke-width: 1.1;
+}
+
+.crew .face,
+.crew .tears,
+.crew .sweat-group {
+  display: none;
+}
+
+.crew .face--idle {
+  display: block;
+}
+
+.crew .eyes {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: blink 4.8s infinite;
+}
+
+.crew .figure--girl .eyes {
+  animation-delay: -2.1s;
+}
+
+/* 표정 전환 */
+.calc.is-heavy .face--idle,
+.calc.is-crushed .face--idle,
+.calc.is-cheer .face--idle {
+  display: none;
+}
+
+.calc.is-heavy .face--heavy {
+  display: block;
+}
+
+.calc.is-crushed .face--cry {
+  display: block;
+}
+
+.calc.is-cheer .face--happy {
+  display: block;
+}
+
+.calc.is-heavy .sweat-group {
+  display: block;
+}
+
+.calc.is-crushed .tears {
+  display: block;
+}
+
+/* 몸 동작 */
+.calc.is-heavy .figure {
+  animation: tremble 0.16s steps(2, end) infinite;
+}
+
+.calc.is-crushed .crew-wrap {
+  z-index: 1;
+}
+
+.crew .squashed {
+  display: none;
+}
+
+.calc.is-crushed .crew .figure {
+  display: none;
+}
+
+.calc.is-crushed .crew .squashed {
+  display: block;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: sob 0.6s ease-in-out infinite;
+}
+
+.calc.is-cheer .figure {
+  animation: hop 0.42s cubic-bezier(0.3, 1.6, 0.5, 1) 2;
+}
+
+.calc.is-cheer .figure--girl,
+.calc.is-cheer .figure--jeolmi-b {
+  animation-delay: 0.08s;
+}
+
+.calc.is-heavy .display {
+  transform: translateY(5px) rotate(-0.5deg);
+}
+
+.calc.is-crushed .display {
+  transform: translateY(24px) rotate(-1.4deg);
+  box-shadow:
+    0 3px 0 rgba(59, 52, 42, 0.16),
+    0 8px 14px -10px rgba(60, 44, 18, 0.5),
+    inset 0 3px 8px rgba(255, 255, 255, 0.9);
+}
+
+.calc.is-cheer .display {
+  animation: lift 0.7s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+
+/* 눈물, 땀, 반짝임 */
+.crew .tear {
+  animation: tearDrop 1.15s ease-in infinite;
+}
+.crew .tear:nth-child(2) {
+  animation-delay: 0.35s;
+}
+.crew .tear:nth-child(3) {
+  animation-delay: 0.7s;
+}
+
+.crew .sweat {
+  animation: sweatFly 1s ease-out infinite;
+}
+.crew .sweat:nth-child(2) {
+  animation-delay: 0.3s;
+}
+.crew .sweat:nth-child(3) {
+  animation-delay: 0.6s;
+}
+
+.sparkles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.spark {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  opacity: 0;
+  background: var(--accent-hi);
+  clip-path: polygon(50% 0%, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0% 50%, 39% 39%);
+}
+
+.calc.is-cheer .spark {
+  animation: twinkle 0.7s ease-out 2;
+}
+
+.spark:nth-child(1) {
+  left: 4%;
+  top: 12%;
+  background: #ffb01f;
+}
+.spark:nth-child(2) {
+  left: 88%;
+  top: 8%;
+  animation-delay: 0.1s;
+  background: var(--pink);
+}
+.spark:nth-child(3) {
+  left: 78%;
+  top: 44%;
+  animation-delay: 0.2s;
+  width: 9px;
+  height: 9px;
+}
+.spark:nth-child(4) {
+  left: 12%;
+  top: 46%;
+  animation-delay: 0.15s;
+  width: 8px;
+  height: 8px;
+  background: #8fd3f4;
+}
+
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.crew-wrap.bump {
+  animation: bump 0.18s ease-out;
+}
+
+@keyframes bump {
+  0% {
+    transform: translateY(0);
+  }
+  45% {
+    transform: translateY(3px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes blink {
+  0%,
+  91%,
+  100% {
+    transform: scaleY(1);
+  }
+  94% {
+    transform: scaleY(0.1);
+  }
+}
+
+@keyframes tremble {
+  0% {
+    transform: translate(-1.4px, 0) rotate(-0.4deg);
+  }
+  100% {
+    transform: translate(1.4px, 0) rotate(0.4deg);
+  }
+}
+
+@keyframes sob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1deg);
+  }
+  50% {
+    transform: translateY(-2px) rotate(1deg);
+  }
+}
+
+@keyframes hop {
+  0% {
+    transform: translateY(0) scaleY(1);
+  }
+  25% {
+    transform: translateY(0) scaleY(0.86);
+  }
+  60% {
+    transform: translateY(-9px) scaleY(1.06);
+  }
+  100% {
+    transform: translateY(0) scaleY(1);
+  }
+}
+
+@keyframes lift {
+  0% {
+    transform: translateY(0);
+  }
+  35% {
+    transform: translateY(-8px) rotate(0.4deg);
+  }
+  70% {
+    transform: translateY(-2px) rotate(-0.3deg);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes tearDrop {
+  0% {
+    opacity: 0;
+    transform: translateY(-2px) scale(0.8);
+  }
+  15% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  80% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(17px) scale(0.85);
+  }
+}
+
+@keyframes sweatFly {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.7);
+  }
+  15% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(9px, -13px) scale(1);
+  }
+}
+
+@keyframes twinkle {
+  0% {
+    opacity: 0;
+    transform: scale(0.2) rotate(0deg);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1.1) rotate(40deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.4) rotate(90deg);
+  }
+}
+
+/* ── 키패드 ───────────────────────────────── */
+.keypad {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(5, minmax(0, 1fr));
+  gap: clamp(7px, 2.1vw, 11px);
+  padding-top: 4px;
+}
+
+.key {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  padding: 0;
+  font-family: inherit;
+  font-size: clamp(19px, 5.8vw, 26px);
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+  background: linear-gradient(180deg, #fffdf7 0%, #f8f1e0 58%, #f0e7d2 100%);
+  border: 1.6px solid var(--ink-line);
+  border-radius: clamp(14px, 4vw, 19px);
+  box-shadow:
+    0 4px 0 var(--key-edge),
+    0 9px 14px -7px rgba(70, 52, 25, 0.4),
+    inset 0 1.5px 0 #fffdf8,
+    inset 0 -1.5px 0 rgba(165, 143, 100, 0.28);
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: transform 0.07s ease, box-shadow 0.07s ease, filter 0.12s ease;
+}
+
+.key:active,
+.key.is-pressed {
+  transform: translateY(4px);
+  box-shadow:
+    0 0 0 var(--key-edge),
+    0 3px 7px -4px rgba(70, 52, 25, 0.35),
+    inset 0 1px 0 #fffdf6;
+  filter: brightness(0.985);
+}
+
+.key:focus-visible {
+  outline: 3px solid rgba(245, 82, 42, 0.55);
+  outline-offset: 2px;
+}
+
+.key--fn {
+  font-size: clamp(15px, 4.4vw, 19px);
+  color: #564c3c;
+  background: linear-gradient(180deg, #fdf8ea 0%, #f4ecda 58%, #ece1c9 100%);
+}
+
+.key--op {
+  color: #fff8ef;
+  font-weight: 800;
+  background: linear-gradient(180deg, #ff7d4c 0%, #f5522a 58%, #e2461e 100%);
+  border-color: #7d2c12;
+  box-shadow:
+    0 4px 0 var(--accent-edge),
+    0 9px 16px -7px rgba(180, 55, 20, 0.5),
+    inset 0 2px 0 rgba(255, 255, 255, 0.34),
+    inset 0 -2px 0 rgba(120, 30, 10, 0.32);
+  text-shadow: 0 1px 0 rgba(120, 30, 10, 0.3);
+}
+
+.key--op:active,
+.key--op.is-pressed {
+  box-shadow:
+    0 0 0 var(--accent-edge),
+    0 3px 8px -4px rgba(180, 55, 20, 0.45),
+    inset 0 2px 0 rgba(255, 255, 255, 0.28);
+}
+
+.key--eq {
+  background: linear-gradient(180deg, #ff6c3b 0%, #e84413 60%, #d2390c 100%);
+  border-color: #6d2410;
+}
+
+.key--zero {
+  grid-column: span 2;
+}
+
+/* ── 발밑 안내 ────────────────────────────── */
+.footnote {
+  margin: 0;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: rgba(78, 66, 50, 0.5);
+  letter-spacing: 0.01em;
+  text-align: center;
+}
+
+@media (display-mode: standalone) {
+  .footnote {
+    display: none;
+  }
+  .app {
+    padding-top: max(6px, env(safe-area-inset-top));
+  }
+  .calc {
+    height: min(900px, calc(100dvh - 24px));
+  }
+}
+
+/* ── 화면 높이 적응 ───────────────────────── */
+@media (max-height: 760px) {
+  .calc {
+    padding: 10px 12px 13px;
+    height: min(880px, calc(100dvh - 26px));
+    border-radius: 28px;
+  }
+  .topbar {
+    padding-bottom: 7px;
+  }
+  .display {
+    min-height: clamp(86px, 14vh, 108px);
+  }
+  .crew {
+    height: clamp(84px, 15vh, 128px);
+  }
+}
+
+@media (max-height: 720px) {
+  .footnote {
+    display: none;
+  }
+}
+
+@media (max-height: 640px) {
+  .title {
+    font-size: 11px;
+  }
+  .display {
+    min-height: 90px;
+    padding: 8px 12px 15px;
+  }
+  .value {
+    font-size: clamp(30px, 10.4vw, 40px);
+  }
+  .crew {
+    height: 94px;
+  }
+  .key {
+    border-radius: 13px;
+    font-size: clamp(17px, 5.2vw, 22px);
+  }
+  .keypad {
+    gap: 6px;
+  }
+}
+
+@media (max-width: 370px) {
+  .title {
+    font-size: 11.5px;
+  }
+  .seg {
+    padding: 3px 6px 4px;
+    font-size: 10px;
+  }
+  .sound-btn {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crew .figure,
+  .crew .eyes,
+  .crew .tear,
+  .crew .sweat,
+  .calc.is-cheer .spark {
+    animation: none !important;
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "stickman-calc",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "description": "스틱맨 둘이 숫자판을 받쳐 드는 PWA 계산기",
+  "scripts": {
+    "test": "node tests/calc.test.mjs"
+  }
+}

@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no"
+    />
+    <title>스틱맨 계산기</title>
+    <meta name="description" content="스틱맨 둘이 숫자판을 번쩍 받쳐 드는 귀여운 계산기" />
+    <meta name="theme-color" content="#f4ecdc" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="스틱맨 계산기" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="icon-192.png" sizes="192x192" type="image/png" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="stylesheet" href="assets/styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <main class="calc" id="calc" data-mode="stickman">
+        <header class="topbar">
+          <h1 class="title"><span class="title-mark" aria-hidden="true"></span>스틱맨 계산기</h1>
+          <div class="tools">
+            <button
+              class="mode-toggle"
+              id="modeToggle"
+              type="button"
+              role="switch"
+              aria-checked="false"
+              aria-label="캐릭터 모드 전환: 스틱맨"
+            >
+              <span class="seg seg--stickman">스틱맨</span>
+              <span class="seg seg--jeolmi">절미</span>
+            </button>
+            <button class="sound-btn" id="soundToggle" type="button" aria-pressed="true" aria-label="효과음 끄기">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path class="spk-body" d="M4 9.5h3.2L12 5.4v13.2L7.2 14.5H4z" />
+                <path class="spk-wave" d="M15.4 8.6a4.8 4.8 0 0 1 0 6.8" />
+                <path class="spk-wave" d="M17.9 6.2a8.2 8.2 0 0 1 0 11.6" />
+                <path class="spk-slash" d="M3.4 3.6 20.4 20.4" />
+              </svg>
+            </button>
+          </div>
+        </header>
+
+        <section class="stage">
+          <div class="display" id="display">
+            <div class="display-inner" aria-hidden="true"></div>
+            <p class="expr" id="expr">0</p>
+            <div class="value-wrap">
+              <span class="value" id="value">0</span>
+            </div>
+          </div>
+
+          <div class="bubble" id="bubble" aria-hidden="true"><span id="bubbleText"></span></div>
+
+          <div class="crew-wrap" aria-hidden="true">
+            <svg class="crew" id="crew" viewBox="0 0 400 158" preserveAspectRatio="xMidYMid meet"></svg>
+            <div class="sparkles" id="sparkles"><span class="spark"></span><span class="spark"></span><span class="spark"></span><span class="spark"></span></div>
+          </div>
+        </section>
+
+        <div class="keypad" id="keypad">
+          <button class="key key--fn" type="button" data-key="AC">AC</button>
+          <button class="key key--fn" type="button" data-key="⌫" aria-label="한 글자 지우기">⌫</button>
+          <button class="key key--fn" type="button" data-key="%">%</button>
+          <button class="key key--op" type="button" data-key="÷" aria-label="나누기">÷</button>
+
+          <button class="key" type="button" data-key="7">7</button>
+          <button class="key" type="button" data-key="8">8</button>
+          <button class="key" type="button" data-key="9">9</button>
+          <button class="key key--op" type="button" data-key="×" aria-label="곱하기">×</button>
+
+          <button class="key" type="button" data-key="4">4</button>
+          <button class="key" type="button" data-key="5">5</button>
+          <button class="key" type="button" data-key="6">6</button>
+          <button class="key key--op" type="button" data-key="-" aria-label="빼기">−</button>
+
+          <button class="key" type="button" data-key="1">1</button>
+          <button class="key" type="button" data-key="2">2</button>
+          <button class="key" type="button" data-key="3">3</button>
+          <button class="key key--op" type="button" data-key="+" aria-label="더하기">+</button>
+
+          <button class="key key--zero" type="button" data-key="0">0</button>
+          <button class="key" type="button" data-key=".">.</button>
+          <button class="key key--eq" type="button" data-key="=" aria-label="계산하기">=</button>
+        </div>
+      </main>
+      <p class="footnote" id="footnote">홈 화면에 추가하면 앱처럼 열려요</p>
+    </div>
+
+    <script type="module" src="assets/app.js"></script>
+  </body>
+</html>

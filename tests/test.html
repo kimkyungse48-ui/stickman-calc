@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>스틱맨 계산기 — 계산 엔진 테스트</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 28px 20px 60px;
+        font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic",
+          "Segoe UI", Roboto, sans-serif;
+        background: #f7f0e0;
+        color: #2f2a22;
+      }
+      h1 {
+        font-size: 18px;
+        margin: 0 0 6px;
+      }
+      .summary {
+        font-size: 15px;
+        font-weight: 800;
+        margin: 0 0 18px;
+        padding: 10px 14px;
+        border-radius: 12px;
+        background: #fffdf6;
+        border: 1.5px solid #2f2a22;
+        display: inline-block;
+      }
+      .summary.pass {
+        background: #e8f7e4;
+      }
+      .summary.fail {
+        background: #ffe3e0;
+      }
+      ol {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        max-width: 720px;
+      }
+      li {
+        padding: 8px 12px;
+        margin-bottom: 6px;
+        border-radius: 10px;
+        background: #fffdf6;
+        border: 1px solid #d9cdb4;
+        font-size: 13.5px;
+        display: flex;
+        gap: 10px;
+      }
+      li.ok .mark {
+        color: #2f8f3f;
+      }
+      li.ng {
+        background: #ffeceb;
+        border-color: #e8897f;
+      }
+      li.ng .mark {
+        color: #c0301a;
+      }
+      .mark {
+        font-weight: 900;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🥿 스틱맨 계산기 계산 엔진 테스트</h1>
+    <p class="summary" id="summary">실행 중…</p>
+    <ol id="list"></ol>
+    <script type="module">
+      import { runCases } from './cases.js';
+
+      const { results, passed, total } = runCases();
+      const summary = document.getElementById('summary');
+      const list = document.getElementById('list');
+      summary.textContent = `${passed}/${total} 통과 ${passed === total ? '— 모두 통과!' : '— 실패 있음'}`;
+      summary.classList.add(passed === total ? 'pass' : 'fail');
+      summary.classList.add('summary');
+      for (const r of results) {
+        const li = document.createElement('li');
+        li.className = r.ok ? 'ok' : 'ng';
+        li.innerHTML = `<span class="mark">${r.ok ? 'PASS' : 'FAIL'}</span><span>${r.name}</span>`;
+        if (r.error) li.innerHTML += `<span style="color:#a33">${r.error}</span>`;
+        list.appendChild(li);
+      }
+      window.__TEST_RESULTS__ = { passed, total, failed: total - passed };
+    </script>
+  </body>
+</html>

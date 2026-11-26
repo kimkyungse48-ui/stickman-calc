@@ -1,5 +1,5 @@
 /* 스틱맨 계산기 서비스워커 — 한 번 열면 오프라인에서도 동작 */
-const CACHE = 'stickman-calc-v5';
+const CACHE = 'stickman-calc-v6';
 const SHELL = [
   './',
   './index.html',
@@ -15,11 +15,21 @@ const SHELL = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches
-      .open(CACHE)
-      .then((cache) => cache.addAll(SHELL))
-      .catch(() => {})
-      .then(() => self.skipWaiting()),
+    (async () => {
+      const cache = await caches.open(CACHE);
+      // HTTP 캐시(깃허브 페이지는 10분)를 건너뛰고 이번 버전 파일을 확실히 받아 둔다.
+      await Promise.all(
+        SHELL.map(async (url) => {
+          try {
+            const res = await fetch(url, { cache: 'reload' });
+            if (res && res.ok) await cache.put(url, res);
+          } catch (err) {
+            /* 하나 못 받아도 설치는 계속(나머지는 첫 요청 때 채움) */
+          }
+        }),
+      );
+      await self.skipWaiting();
+    })(),
   );
 });
 

@@ -89,6 +89,25 @@ def main():
         page.click("#modeToggle")
         page.wait_for_timeout(200)
 
+        # ── 음성 읽기
+        check("음성 토글 버튼 있음", page.locator("#speechToggle").count() == 1, page.locator("#speechToggle").count())
+        check("음성 토글 기본 켜짐", page.get_attribute("#speechToggle", "aria-pressed") == "true")
+        check(
+            "한국어 수 읽기",
+            page.evaluate("window.__stickman.numberToKorean(123456)") == "십이만 삼천사백오십육",
+            page.evaluate("window.__stickman.numberToKorean(123456)"),
+        )
+        page.evaluate("window.__stickman.speechLog.length = 0")
+        tap(page, ["AC", "5", "6", "2", "3", "+", "9", "8", "="])
+        page.wait_for_timeout(400)
+        log = page.evaluate("window.__stickman.speechLog.slice()")
+        check(
+            "음성 읽기 로그",
+            log == ["초기화", "오", "육", "이", "삼", "더하기", "구", "팔", "이꼴 오천칠백이십일"],
+            log,
+        )
+        page.screenshot(path=os.path.join(SHOTS, "deploy-speech.png"))
+
         # ── 매니페스트 / 아이콘
         man = page.evaluate(
             "async () => { const r = await fetch('manifest.webmanifest'); const j = await r.json();"
@@ -111,7 +130,7 @@ def main():
         check("서비스워커 등록", sw and sw["active"], sw)
         check("SW scope 가 서브패스", sw and sw["scope"].endswith("/stickman-calc/"), sw and sw["scope"])
         cached = page.evaluate("async () => (await caches.keys())")
-        check("캐시 생성", bool(cached), cached)
+        check("캐시 생성 (v3)", "stickman-calc-v3" in cached, cached)
         context.set_offline(True)
         offline_ok = False
         try:

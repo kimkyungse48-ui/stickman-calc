@@ -71,6 +71,94 @@ export function moodFor(value, isError = false) {
   return 'normal';
 }
 
+/* ── 한국어 수 읽기 (음성 읽기용) ──────────────────────
+ * 0 → 영, 5,721 → 오천칠백이십일, 10,000 → 만,
+ * 123,456 → 십이만 삼천사백오십육, 1억 → 일억
+ * 소수는 한 자리씩(3.14 → 삼점일사), 음수는 앞에 '마이너스 '.
+ */
+const DIGIT_WORD = ['영', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구'];
+const PLACE_WORD = ['', '십', '백', '천'];
+const BIG_UNIT = ['', '만', '억', '조', '경', '해', '자', '양', '구', '간', '정', '재', '극'];
+
+/* 네 자리 묶음 하나를 읽는다. 맨 앞의 '일'은 십·백·천 앞에서 생략한다(일천 → 천). */
+function readGroup(digits) {
+  const padded = String(digits).padStart(4, '0');
+  let out = '';
+  for (let i = 0; i < 4; i += 1) {
+    const d = Number(padded[i]);
+    if (d === 0) continue;
+    const place = PLACE_WORD[3 - i];
+    if (!(d === 1 && place && out === '')) out += DIGIT_WORD[d];
+    out += place;
+  }
+  return out;
+}
+
+/* 정수부 문자열을 네 자리씩 끊어 읽는다. 단위 사이는 띄어 쓴다. */
+function readInteger(digits) {
+  let s = String(digits).replace(/^0+/, '');
+  if (s === '') return '영';
+  const groups = [];
+  while (s.length > 0) {
+    groups.push(s.slice(-4));
+    s = s.slice(0, -4);
+  }
+  groups.reverse();
+  if (groups.length > BIG_UNIT.length) return null; // 단위를 넘는 아주 큰 수
+  const n = groups.length;
+  const parts = [];
+  for (let i = 0; i < n; i += 1) {
+    const value = Number(groups[i]);
+    if (value === 0) continue;
+    const unitIndex = n - 1 - i;
+    let text = readGroup(groups[i]);
+    // 10,000 은 '일만'이 아니라 '만' — 만 단위가 맨 앞일 때만 '일'을 뺀다.
+    if (value === 1 && unitIndex === 1 && i === 0) text = '';
+    parts.push(text + BIG_UNIT[unitIndex]);
+  }
+  return parts.length ? parts.join(' ') : '영';
+}
+
+/* 1e+21 같은 지수 표기를 보통 소수 문자열로 펼친다. */
+function expandExponential(s) {
+  const m = /^(\d+)(?:\.(\d+))?e([+-]?\d+)$/i.exec(s);
+  if (!m) return s;
+  const intPart = m[1];
+  const fracPart = m[2] || '';
+  const exp = Number(m[3]);
+  const digits = intPart + fracPart;
+  const point = intPart.length + exp;
+  if (point <= 0) return '0.' + '0'.repeat(-point) + digits;
+  if (point >= digits.length) return digits + '0'.repeat(point - digits.length);
+  return digits.slice(0, point) + '.' + digits.slice(point);
+}
+
+/* 값(숫자 또는 표시 문자열)을 한국어 읽기 문자열로 바꾼다. */
+export function numberToKorean(value) {
+  if (value === null || value === undefined || value === '') return '영';
+  if (typeof value === 'string') {
+    const t = value.replace(/[,\s]/g, '');
+    if (t === '오류') return '오류';
+    if (t === '∞' || t === '무한대') return '무한대';
+    value = t;
+  }
+  const num = Number(value);
+  if (Number.isNaN(num)) return '오류';
+  if (!Number.isFinite(num)) return '무한대';
+  if (num === 0) return '영';
+
+  const sign = num < 0 ? '마이너스 ' : '';
+  const abs = Math.abs(num);
+  if (abs < 1e-12) return sign + '아주 작은 수';
+
+  const [intDigits, fracDigits] = expandExponential(String(abs)).split('.');
+  const intText = readInteger(intDigits);
+  if (intText === null) return sign + '아주 큰 수';
+  if (!fracDigits) return sign + intText;
+  const fracText = [...fracDigits].map((d) => DIGIT_WORD[Number(d)]).join('');
+  return sign + intText + '점' + fracText;
+}
+
 const OPS = ['+', '-', '×', '÷'];
 
 export class Calculator {

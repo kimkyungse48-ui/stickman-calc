@@ -119,6 +119,29 @@ def main():
         page.click("#soundToggle")
         check("효과음 켜기", page.get_attribute("#soundToggle", "aria-pressed") == "true")
 
+        # ── 음성 읽기 (말소리)
+        check("음성 토글 기본 켜짐", page.get_attribute("#speechToggle", "aria-pressed") == "true")
+        page.evaluate("window.__stickman.speechLog.length = 0")
+        tap(page, ["5", "6", "2", "3"])
+        log = page.evaluate("window.__stickman.speechLog.slice()")
+        check("숫자 읽기 로그", log == ["오", "육", "이", "삼"], log)
+        tap(page, ["+", "9", "8", "="])
+        page.wait_for_timeout(320)
+        log = page.evaluate("window.__stickman.speechLog.slice()")
+        check(
+            "기호·이꼴 읽기 로그",
+            log == ["오", "육", "이", "삼", "더하기", "구", "팔", "이꼴 오천칠백이십일"],
+            log,
+        )
+        page.screenshot(path=os.path.join(SHOTS, "speech-topbar.png"), clip={"x": 0, "y": 0, "width": 390, "height": 90})
+        page.click("#speechToggle")
+        check("음성 끄기", page.get_attribute("#speechToggle", "aria-pressed") == "false")
+        page.evaluate("window.__stickman.speechLog.length = 0")
+        tap(page, ["AC", "7"])
+        check("음성 끄면 조용함", page.evaluate("window.__stickman.speechLog.length") == 0)
+        page.click("#speechToggle")
+        check("음성 켜기", page.get_attribute("#speechToggle", "aria-pressed") == "true")
+
         # ── 오프라인(PWA 캐시) 확인
         page.wait_for_timeout(1200)
         sw_state = page.evaluate(

@@ -1,5 +1,5 @@
 /* 스틱맨 계산기 계산 엔진 테스트 케이스 (브라우저·Node 공용) */
-import { Calculator, formatNumber, formatEntry, moodFor } from '../assets/calc.js';
+import { Calculator, formatNumber, formatEntry, moodFor, numberToKorean } from '../assets/calc.js';
 
 function run(keys) {
   const c = new Calculator();
@@ -137,6 +137,56 @@ export function cases() {
     t('expression 줄 표시', () => {
       const { calc, snap } = run(['7', '×', '8']);
       return snap.expression === '7 ×' && calc.press('=').expression === '7 × 8 =';
+    }),
+    t('한국어 읽기: 0과 한 자리', () => {
+      return numberToKorean(0) === '영' && numberToKorean(7) === '칠' && numberToKorean(9) === '구';
+    }),
+    t('한국어 읽기: 십·백·천은 일을 뺀다', () => {
+      return numberToKorean(10) === '십' && numberToKorean(100) === '백' && numberToKorean(1000) === '천';
+    }),
+    t('한국어 읽기: 5,721', () => {
+      return numberToKorean(5721) === '오천칠백이십일';
+    }),
+    t('한국어 읽기: 10,000은 만', () => {
+      return numberToKorean(10000) === '만' && numberToKorean(20000) === '이만' && numberToKorean(1000000) === '백만';
+    }),
+    t('한국어 읽기: 123,456', () => {
+      return numberToKorean(123456) === '십이만 삼천사백오십육';
+    }),
+    t('한국어 읽기: 1억과 억 단위', () => {
+      return (
+        numberToKorean(100000000) === '일억' &&
+        numberToKorean(123456789) === '일억 이천삼백사십오만 육천칠백팔십구' &&
+        numberToKorean(1000000000000) === '일조'
+      );
+    }),
+    t('한국어 읽기: 소수는 한 자리씩', () => {
+      return numberToKorean(3.14) === '삼점일사' && numberToKorean(0.5) === '영점오' && numberToKorean(10 / 4) === '이점오';
+    }),
+    t('한국어 읽기: 음수는 마이너스', () => {
+      return (
+        numberToKorean(-120) === '마이너스 백이십' &&
+        numberToKorean(-50) === '마이너스 오십' &&
+        numberToKorean(-0.5) === '마이너스 영점오'
+      );
+    }),
+    t('한국어 읽기: 오류·무한대', () => {
+      return (
+        numberToKorean(NaN) === '오류' &&
+        numberToKorean('오류') === '오류' &&
+        numberToKorean(Infinity) === '무한대' &&
+        numberToKorean('5,721') === '오천칠백이십일'
+      );
+    }),
+    t('한국어 읽기: 계산 결과를 읽기', () => {
+      const { snap } = run(['5', '6', '2', '3', '+', '9', '8', '=']);
+      const minus = run(['5', '0', '-', '1', '0', '0', '=']).snap;
+      const dec = run(['3', '.', '1', '4', '=']).snap;
+      return (
+        numberToKorean(snap.value) === '오천칠백이십일' &&
+        numberToKorean(minus.value) === '마이너스 오십' &&
+        numberToKorean(dec.value) === '삼점일사'
+      );
     }),
   ];
 }

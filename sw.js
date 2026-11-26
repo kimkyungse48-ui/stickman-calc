@@ -1,5 +1,5 @@
 /* 스틱맨 계산기 서비스워커 — 한 번 열면 오프라인에서도 동작 */
-const CACHE = 'stickman-calc-v4';
+const CACHE = 'stickman-calc-v5';
 const SHELL = [
   './',
   './index.html',
@@ -38,7 +38,29 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
-  // 캐시 우선(계산기는 내용이 거의 바뀌지 않으니 빠르게), 없으면 네트워크
+  // 화면(HTML)은 네트워크 우선 — 새로 배포한 내용이 첫 실행에 바로 보이게.
+  // 네트워크가 없으면 캐시의 화면으로 연다(오프라인 동작 유지).
+  if (req.mode === 'navigate') {
+    event.respondWith(
+      fetch(req, { cache: 'no-cache' })
+        .then((res) => {
+          if (res && res.ok) {
+            const copy = res.clone();
+            caches.open(CACHE).then((cache) => cache.put('./index.html', copy)).catch(() => {});
+          }
+          return res;
+        })
+        .catch(() =>
+          caches
+            .match(req, { ignoreSearch: true })
+            .then((hit) => hit || caches.match('./index.html'))
+            .then((hit) => hit || new Response('', { status: 504, statusText: 'offline' })),
+        ),
+    );
+    return;
+  }
+
+  // 나머지는 캐시 우선(계산기는 내용이 거의 바뀌지 않으니 빠르게), 없으면 네트워크
   event.respondWith(
     caches.match(req, { ignoreSearch: true }).then((hit) => {
       if (hit) return hit;
@@ -50,10 +72,7 @@ self.addEventListener('fetch', (event) => {
           }
           return res;
         })
-        .catch(() => {
-          if (req.mode === 'navigate') return caches.match('./index.html');
-          return new Response('', { status: 504, statusText: 'offline' });
-        });
+        .catch(() => new Response('', { status: 504, statusText: 'offline' }));
     }),
   );
 });

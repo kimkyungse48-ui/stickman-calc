@@ -26,6 +26,25 @@ def tap(page, keys):
         page.wait_for_timeout(60)
 
 
+LAYOUT_JS = """() => {
+  const rect = (el) => { const r = el.getBoundingClientRect(); return {l: r.left, r: r.right, t: r.top, b: r.bottom, w: r.width}; };
+  const calc = rect(document.querySelector('#calc'));
+  const titleEl = document.querySelector('.title');
+  const tools = [...document.querySelectorAll('.tools > *')].map(rect);
+  const tops = tools.map((t) => Math.round(t.t));
+  const overlaps = tools.some((a, i) => tools.some((b, j) => j > i && a.r > b.l + 0.5 && a.l < b.r - 0.5));
+  return {
+    calcRight: calc.r,
+    toolRight: Math.max(...tools.map((t) => t.r)),
+    oneRow: Math.max(...tops) - Math.min(...tops) <= 2,
+    overlaps,
+    titleClipped: titleEl.scrollWidth > titleEl.clientWidth + 1,
+    docWidth: document.documentElement.scrollWidth,
+    innerWidth: window.innerWidth,
+  };
+}"""
+
+
 def main():
     os.makedirs(SHOTS, exist_ok=True)
     with sync_playwright() as p:
@@ -108,6 +127,73 @@ def main():
         )
         page.screenshot(path=os.path.join(SHOTS, "deploy-speech.png"))
 
+        # ── 음성 언어 전환 (EN)
+        check("언어 토글 버튼 있음", page.locator("#langToggle").count() == 1, page.locator("#langToggle").count())
+        check("기본 언어 한국어", page.evaluate("window.__stickman.getLang()") == "ko")
+        page.evaluate("window.__stickman.speechLog.length = 0")
+        page.click("#langToggle")
+        page.wait_for_timeout(200)
+        check("EN 전환", page.evaluate("window.__stickman.getLang()") == "en")
+        check("EN 안내 발화", page.evaluate("window.__stickman.speechLog.slice()") == ["English"], page.evaluate("window.__stickman.speechLog.slice()"))
+        page.evaluate("window.__stickman.speechLog.length = 0")
+        tap(page, ["AC", "5", "6", "2", "3", "+", "9", "8", "="])
+        page.wait_for_timeout(400)
+        log = page.evaluate("window.__stickman.speechLog.slice()")
+        check(
+            "영어 발화 로그",
+            log
+            == [
+                "clear",
+                "five",
+                "six",
+                "two",
+                "three",
+                "plus",
+                "nine",
+                "eight",
+                "equals five thousand seven hundred twenty one",
+            ],
+            log,
+        )
+        page.screenshot(path=os.path.join(SHOTS, "deploy-lang-en.png"))
+        page.evaluate("window.__stickman.speechLog.length = 0")
+        tap(page, ["AC", "1", "2", "÷", "0", "="])
+        page.wait_for_timeout(300)
+        log = page.evaluate("window.__stickman.speechLog.slice()")
+        check("영어 오류 발화", log[-1] == "error", log)
+        page.evaluate("window.__stickman.speechLog.length = 0")
+        page.click("#langToggle")
+        page.wait_for_timeout(200)
+        check("한국어 복귀", page.evaluate("window.__stickman.getLang()") == "ko")
+        tap(page, ["AC", "7", "+", "8", "="])
+        page.wait_for_timeout(300)
+        log = page.evaluate("window.__stickman.speechLog.slice()")
+        check("한국어 발화 복귀", log[-1] == "이꼴 십오", log)
+        page.reload()
+        page.wait_for_timeout(800)
+        check("새로고침 후 언어 유지(ko)", page.evaluate("window.__stickman.getLang()") == "ko")
+
+        # ── 상단 바 배치 (390 / 360)
+        lay = page.evaluate(LAYOUT_JS)
+        check("390 상단 한 줄·겹침 없음", lay["oneRow"] and not lay["overlaps"], lay)
+        check("390 버튼이 본체 안", lay["toolRight"] <= lay["calcRight"] - 8, lay)
+        check("390 가로 넘침 없음", lay["docWidth"] <= lay["innerWidth"], lay)
+        page.screenshot(path=os.path.join(SHOTS, "deploy-topbar-390.png"), clip={"x": 0, "y": 0, "width": 390, "height": 90})
+        narrow = browser.new_context(viewport={"width": 360, "height": 780}, device_scale_factor=2)
+        npage = narrow.new_page()
+        nerrors = []
+        npage.on("pageerror", lambda e: nerrors.append(str(e)))
+        npage.goto(BASE)
+        npage.wait_for_timeout(900)
+        nlay = npage.evaluate(LAYOUT_JS)
+        check("360 상단 한 줄·겹침 없음", nlay["oneRow"] and not nlay["overlaps"], nlay)
+        check("360 버튼이 본체 안", nlay["toolRight"] <= nlay["calcRight"] - 4, nlay)
+        check("360 가로 넘침 없음", nlay["docWidth"] <= nlay["innerWidth"], nlay)
+        check("360 페이지 오류 없음", len(nerrors) == 0, nerrors)
+        npage.screenshot(path=os.path.join(SHOTS, "deploy-topbar-360.png"), clip={"x": 0, "y": 0, "width": 360, "height": 90})
+        npage.screenshot(path=os.path.join(SHOTS, "deploy-en-360.png"))
+        narrow.close()
+
         # ── 매니페스트 / 아이콘
         man = page.evaluate(
             "async () => { const r = await fetch('manifest.webmanifest'); const j = await r.json();"
@@ -130,7 +216,8 @@ def main():
         check("서비스워커 등록", sw and sw["active"], sw)
         check("SW scope 가 서브패스", sw and sw["scope"].endswith("/stickman-calc/"), sw and sw["scope"])
         cached = page.evaluate("async () => (await caches.keys())")
-        check("캐시 생성 (v6)", "stickman-calc-v6" in cached, cached)
+        check("캐시 생성 (v7)", "stickman-calc-v7" in cached, cached)
+        check("옛 캐시 정리", "stickman-calc-v6" not in cached, cached)
         context.set_offline(True)
         offline_ok = False
         try:

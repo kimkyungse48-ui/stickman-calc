@@ -1,5 +1,5 @@
 /* 스틱맨 계산기 서비스워커 — 한 번 열면 오프라인에서도 동작 */
-const CACHE = 'stickman-calc-v6';
+const CACHE = 'stickman-calc-v7';
 const SHELL = [
   './',
   './index.html',

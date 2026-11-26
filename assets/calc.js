@@ -159,6 +159,87 @@ export function numberToKorean(value) {
   return sign + intText + '점' + fracText;
 }
 
+/* ── 영어 수 읽기 (음성 읽기용, 언어 English) ──────────
+ * 0 → zero, 5,721 → five thousand seven hundred twenty one,
+ * 1,000,000 → one million, 3.14 → three point one four, -50 → minus fifty
+ * 소수는 한 자리씩(three point one four), 한국어와 같은 규칙의 틀을 쓴다.
+ */
+const EN_DIGIT = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
+const EN_TEEN = [
+  'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen',
+];
+const EN_TENS = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+const EN_SCALE = [
+  '', 'thousand', 'million', 'billion', 'trillion', 'quadrillion', 'quintillion', 'sextillion', 'septillion',
+  'octillion', 'nonillion', 'decillion',
+];
+
+/* 세 자리 묶음 하나를 읽는다. 123 → one hundred twenty three */
+function readGroupEn(digits) {
+  const v = Number(digits);
+  if (!v) return '';
+  const parts = [];
+  const hundreds = Math.floor(v / 100);
+  const rest = v % 100;
+  if (hundreds) parts.push(EN_DIGIT[hundreds] + ' hundred');
+  if (rest >= 20) {
+    const tens = Math.floor(rest / 10);
+    const ones = rest % 10;
+    parts.push(ones ? EN_TENS[tens] + ' ' + EN_DIGIT[ones] : EN_TENS[tens]);
+  } else if (rest >= 10) {
+    parts.push(EN_TEEN[rest - 10]);
+  } else if (rest > 0) {
+    parts.push(EN_DIGIT[rest]);
+  }
+  return parts.join(' ');
+}
+
+/* 정수부 문자열을 세 자리씩 끊어 읽는다. 단위 사이는 띄어 쓴다. */
+function readIntegerEn(digits) {
+  let s = String(digits).replace(/^0+/, '');
+  if (s === '') return 'zero';
+  const groups = [];
+  while (s.length > 0) {
+    groups.push(s.slice(-3));
+    s = s.slice(0, -3);
+  }
+  groups.reverse();
+  if (groups.length > EN_SCALE.length) return null; // 단위를 넘는 아주 큰 수
+  const n = groups.length;
+  const parts = [];
+  for (let i = 0; i < n; i += 1) {
+    if (!Number(groups[i])) continue;
+    parts.push([readGroupEn(groups[i]), EN_SCALE[n - 1 - i]].filter(Boolean).join(' '));
+  }
+  return parts.length ? parts.join(' ') : 'zero';
+}
+
+/* 값(숫자 또는 표시 문자열)을 영어 읽기 문자열로 바꾼다. */
+export function numberToEnglish(value) {
+  if (value === null || value === undefined || value === '') return 'zero';
+  if (typeof value === 'string') {
+    const t = value.replace(/[,\s]/g, '');
+    if (t === '오류' || t === 'error') return 'error';
+    if (t === '∞' || t === '무한대') return 'infinity';
+    value = t;
+  }
+  const num = Number(value);
+  if (Number.isNaN(num)) return 'error';
+  if (!Number.isFinite(num)) return 'infinity';
+  if (num === 0) return 'zero';
+
+  const sign = num < 0 ? 'minus ' : '';
+  const abs = Math.abs(num);
+  if (abs < 1e-12) return sign + 'a very small number';
+
+  const [intDigits, fracDigits] = expandExponential(String(abs)).split('.');
+  const intText = readIntegerEn(intDigits);
+  if (intText === null) return sign + 'a very large number';
+  if (!fracDigits) return sign + intText;
+  const fracText = [...fracDigits].map((d) => EN_DIGIT[Number(d)]).join(' ');
+  return sign + intText + ' point ' + fracText;
+}
+
 const OPS = ['+', '-', '×', '÷'];
 
 export class Calculator {

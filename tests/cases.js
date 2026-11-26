@@ -1,5 +1,5 @@
 /* 스틱맨 계산기 계산 엔진 테스트 케이스 (브라우저·Node 공용) */
-import { Calculator, formatNumber, formatEntry, moodFor, numberToKorean } from '../assets/calc.js';
+import { Calculator, formatNumber, formatEntry, moodFor, numberToKorean, numberToEnglish } from '../assets/calc.js';
 
 function run(keys) {
   const c = new Calculator();
@@ -186,6 +186,77 @@ export function cases() {
         numberToKorean(snap.value) === '오천칠백이십일' &&
         numberToKorean(minus.value) === '마이너스 오십' &&
         numberToKorean(dec.value) === '삼점일사'
+      );
+    }),
+    t('영어 읽기: 0~9와 소수점', () => {
+      return (
+        numberToEnglish(0) === 'zero' &&
+        numberToEnglish(5) === 'five' &&
+        numberToEnglish(9) === 'nine' &&
+        numberToEnglish(3.14) === 'three point one four' &&
+        numberToEnglish(0.5) === 'zero point five'
+      );
+    }),
+    t('영어 읽기: 5,721 과 십 단위', () => {
+      return (
+        numberToEnglish(5721) === 'five thousand seven hundred twenty one' &&
+        numberToEnglish(12) === 'twelve' &&
+        numberToEnglish(20) === 'twenty' &&
+        numberToEnglish(99) === 'ninety nine' &&
+        numberToEnglish(100) === 'one hundred' &&
+        numberToEnglish(123) === 'one hundred twenty three'
+      );
+    }),
+    t('영어 읽기: 천·만·백만 단위', () => {
+      return (
+        numberToEnglish(1000) === 'one thousand' &&
+        numberToEnglish(10000) === 'ten thousand' &&
+        numberToEnglish(1000000) === 'one million' &&
+        numberToEnglish(123456) === 'one hundred twenty three thousand four hundred fifty six' &&
+        numberToEnglish(123456789) ===
+          'one hundred twenty three million four hundred fifty six thousand seven hundred eighty nine'
+      );
+    }),
+    t('영어 읽기: 십억·조 단위', () => {
+      return (
+        numberToEnglish(1000000000) === 'one billion' &&
+        numberToEnglish(1000000000000) === 'one trillion' &&
+        numberToEnglish(2000000000000) === 'two trillion'
+      );
+    }),
+    t('영어 읽기: 음수는 minus', () => {
+      return (
+        numberToEnglish(-50) === 'minus fifty' &&
+        numberToEnglish(-120) === 'minus one hundred twenty' &&
+        numberToEnglish(-0.5) === 'minus zero point five'
+      );
+    }),
+    t('영어 읽기: 오류·무한대·콤마 문자열', () => {
+      return (
+        numberToEnglish(NaN) === 'error' &&
+        numberToEnglish('오류') === 'error' &&
+        numberToEnglish(Infinity) === 'infinity' &&
+        numberToEnglish('5,721') === 'five thousand seven hundred twenty one'
+      );
+    }),
+    t('영어 읽기: 계산 결과를 읽기', () => {
+      const sum = run(['5', '6', '2', '3', '+', '9', '8', '=']).snap;
+      const minus = run(['5', '0', '-', '1', '0', '0', '=']).snap;
+      const dec = run(['3', '.', '1', '4', '=']).snap;
+      const div = run(['1', '2', '÷', '0', '=']).snap;
+      return (
+        numberToEnglish(sum.value) === 'five thousand seven hundred twenty one' &&
+        numberToEnglish(minus.value) === 'minus fifty' &&
+        numberToEnglish(dec.value) === 'three point one four' &&
+        div.isError &&
+        numberToEnglish(div.display) === 'error'
+      );
+    }),
+    t('언어별 발화 한 조각 (= 는 equals/이꼴)', () => {
+      const { snap } = run(['9', '-', '1', '0', '=']);
+      return (
+        'equals ' + numberToEnglish(snap.value) === 'equals minus one' &&
+        '이꼴 ' + numberToKorean(snap.value) === '이꼴 마이너스 일'
       );
     }),
   ];

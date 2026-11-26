@@ -1,5 +1,5 @@
 /* 스틱맨 계산기 — 화면 동작 */
-import { Calculator, moodFor, numberToKorean } from './calc.js';
+import { Calculator, moodFor, numberToKorean, numberToEnglish } from './calc.js';
 
 /* 콘솔 오류 수집(테스트 확인용) */
 const errorLog = [];
@@ -118,17 +118,18 @@ const Speech = (() => {
   const supported = Boolean(synth && Utterance);
   let enabled = true;
   let voice = null;
+  let lang = 'ko';
   let pending = 0;
   const log = [];
+  const spoken = []; // 실제로 넘긴 발화(언어 포함) — 테스트 확인용
 
   function pickVoice() {
     if (!supported) return;
     try {
       const voices = synth.getVoices() || [];
-      voice =
-        voices.find((v) => /^ko[-_]?kr/i.test(v.lang)) ||
-        voices.find((v) => /^ko/i.test(v.lang)) ||
-        null;
+      const exact = lang === 'en' ? /^en[-_]?us/i : /^ko[-_]?kr/i;
+      const loose = lang === 'en' ? /^en/i : /^ko/i;
+      voice = voices.find((v) => exact.test(v.lang)) || voices.find((v) => loose.test(v.lang)) || null;
     } catch (err) {
       voice = null;
     }
@@ -153,7 +154,7 @@ const Speech = (() => {
       if (synth.speaking || synth.pending) synth.cancel();
       if (synth.paused) synth.resume();
       const u = new Utterance(text);
-      u.lang = 'ko-KR';
+      u.lang = lang === 'en' ? 'en-US' : 'ko-KR';
       u.rate = rate;
       u.pitch = 1;
       u.volume = 1;
@@ -168,8 +169,17 @@ const Speech = (() => {
   return {
     supported,
     log,
+    utterances: spoken,
     isEnabled() {
       return enabled;
+    },
+    getLang() {
+      return lang;
+    },
+    setLang(next) {
+      lang = next === 'en' ? 'en' : 'ko';
+      pickVoice();
+      return lang;
     },
     setEnabled(v) {
       enabled = Boolean(v);
@@ -188,41 +198,67 @@ const Speech = (() => {
       if (!text || !enabled) return;
       log.push(text);
       if (log.length > 60) log.shift();
+      spoken.push({ text, lang: lang === 'en' ? 'en-US' : 'ko-KR' });
+      if (spoken.length > 40) spoken.shift();
       if (delay > 0) pending = window.setTimeout(() => utter(text, rate), delay);
       else utter(text, rate);
     },
   };
 })();
 
-/* 키마다 읽어 줄 말 */
+/* 키마다 읽어 줄 말 (언어별) */
 const KEY_SPEECH = {
-  0: '영',
-  1: '일',
-  2: '이',
-  3: '삼',
-  4: '사',
-  5: '오',
-  6: '육',
-  7: '칠',
-  8: '팔',
-  9: '구',
-  '.': '점',
-  '+': '더하기',
-  '-': '빼기',
-  '×': '곱하기',
-  '÷': '나누기',
-  '%': '퍼센트',
-  AC: '초기화',
-  '⌫': '지우기',
+  ko: {
+    0: '영',
+    1: '일',
+    2: '이',
+    3: '삼',
+    4: '사',
+    5: '오',
+    6: '육',
+    7: '칠',
+    8: '팔',
+    9: '구',
+    '.': '점',
+    '+': '더하기',
+    '-': '빼기',
+    '×': '곱하기',
+    '÷': '나누기',
+    '%': '퍼센트',
+    AC: '초기화',
+    '⌫': '지우기',
+  },
+  en: {
+    0: 'zero',
+    1: 'one',
+    2: 'two',
+    3: 'three',
+    4: 'four',
+    5: 'five',
+    6: 'six',
+    7: 'seven',
+    8: 'eight',
+    9: 'nine',
+    '.': 'point',
+    '+': 'plus',
+    '-': 'minus',
+    '×': 'times',
+    '÷': 'divided by',
+    '%': 'percent',
+    AC: 'clear',
+    '⌫': 'delete',
+  },
 };
 
-/* 누른 키로 읽을 말과 속도. '='는 "이꼴 + 결과". */
-function speechFor(key, snap) {
+/* 누른 키로 읽을 말과 속도. '='는 "equals + 결과"(한국어는 "이꼴"). */
+function speechFor(key, snap, lang = Speech.getLang()) {
+  const isEn = lang === 'en';
   if (key === '=') {
-    if (snap.isError) return { text: '오류', rate: 1.05 };
-    return { text: '이꼴 ' + numberToKorean(snap.value), rate: 1.05 };
+    if (snap.isError) return { text: isEn ? 'error' : '오류', rate: 1.05 };
+    const words = isEn ? numberToEnglish(snap.value) : numberToKorean(snap.value);
+    return { text: (isEn ? 'equals ' : '이꼴 ') + words, rate: 1.05 };
   }
-  return { text: KEY_SPEECH[key] || '', rate: 1.18 };
+  return { text: (KEY_SPEECH[isEn ? 'en' : 'ko'][key]) || '', rate: 1.18 };
 }
 
 /* ── 캐릭터 SVG ──────────────────────────────────────── */
@@ -449,6 +485,7 @@ const bubbleTextEl = document.getElementById('bubbleText');
 const crewEl = document.getElementById('crew');
 const crewWrap = document.querySelector('.crew-wrap');
 const modeToggle = document.getElementById('modeToggle');
+const langToggle = document.getElementById('langToggle');
 const soundToggle = document.getElementById('soundToggle');
 const speechToggle = document.getElementById('speechToggle');
 const keypad = document.getElementById('keypad');
@@ -552,7 +589,7 @@ function press(key, { silent = false } = {}) {
       cheer();
     }
     // 효과음과 겹치지 않게 '='는 살짝 늦게, 나머지는 바로 읽는다.
-    const say = speechFor(key, snap);
+    const say = speechFor(key, snap, Speech.getLang());
     if (say.text) Speech.say(say.text, { rate: say.rate, delay: key === '=' ? 160 : 0 });
     if (navigator.vibrate) navigator.vibrate(8);
   }
@@ -631,7 +668,7 @@ function setSpeech(on, { save = true, announce = true } = {}) {
   speechToggle.setAttribute('aria-pressed', String(on));
   speechToggle.setAttribute('aria-label', on ? '음성 읽기 끄기' : '음성 읽기 켜기');
   if (save) STORE.set('stickman-calc-speech', on ? 'on' : 'off');
-  if (on && announce) Speech.say('음성 읽기 켜짐', { rate: 1.05 });
+  if (on && announce) Speech.say(Speech.getLang() === 'en' ? 'Voice on' : '음성 읽기 켜짐', { rate: 1.05 });
 }
 
 speechToggle.addEventListener('click', () => {
@@ -639,6 +676,31 @@ speechToggle.addEventListener('click', () => {
   Sound.unlock();
   Sound.click();
   setSpeech(on);
+  if (navigator.vibrate) navigator.vibrate(6);
+});
+
+/* 음성 언어 전환 (한국어 ↔ English) */
+function setSpeechLang(next, { save = true, announce = true } = {}) {
+  const value = next === 'en' ? 'en' : 'ko';
+  Speech.setLang(value);
+  calcEl.dataset.lang = value;
+  document.documentElement.lang = value;
+  langToggle.setAttribute('aria-checked', String(value === 'en'));
+  langToggle.setAttribute(
+    'aria-label',
+    value === 'en' ? '음성 언어 전환: English (누르면 한국어)' : '음성 언어 전환: 한국어 (누르면 English)',
+  );
+  if (save) STORE.set('stickman-calc-lang', value);
+  if (announce && Speech.isEnabled()) {
+    Speech.say(value === 'en' ? 'English' : '한국어', { rate: 1.05 });
+  }
+  return value;
+}
+
+langToggle.addEventListener('click', () => {
+  Sound.unlock();
+  Sound.click();
+  setSpeechLang(Speech.getLang() === 'ko' ? 'en' : 'ko');
   if (navigator.vibrate) navigator.vibrate(6);
 });
 
@@ -652,6 +714,7 @@ if ('serviceWorker' in navigator) {
 /* ── 시작 ───────────────────────────────────────────── */
 setMode(STORE.get('stickman-calc-mode', 'stickman'), { save: false });
 setSound(STORE.get('stickman-calc-sound', 'on') === 'on', { save: false });
+setSpeechLang(STORE.get('stickman-calc-lang', 'ko'), { save: false, announce: false });
 setSpeech(STORE.get('stickman-calc-speech', 'on') === 'on', { save: false, announce: false });
 render(calculator.snapshot());
 
@@ -664,11 +727,15 @@ window.__stickman = {
   getMode: () => mode,
   moodFor,
   numberToKorean,
+  numberToEnglish,
   speechFor,
   speechLog: Speech.log,
+  utterances: Speech.utterances,
   speechSupported: Speech.supported,
   isSpeechOn: () => Speech.isEnabled(),
   setSpeech,
+  getLang: () => Speech.getLang(),
+  setSpeechLang,
 };
 
 document.documentElement.dataset.ready = 'true';
